@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Student Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='web.css') }}">
+
+</head>
+<body>
+
+<header>
+Smart Student Academic Management System
+</header>
+
+<div class="container">
+
+<!-- TOP SECTION -->
+<div class="top-section">
+
+<div class="form-section">
+
+<h2>Add Student</h2>
+
+<form action="/add" method="post">
+
+Name:
+<input type="text" name="name" required>
+
+Roll:
+<input type="number" name="roll" required>
+
+Maths:
+<input type="number" name="m1" required>
+
+Physics:
+<input type="number" name="m2" required>
+
+Chemistry:
+<input type="number" name="m3" required>
+
+Computer:
+<input type="number" name="m4" required>
+
+English:
+<input type="number" name="m5" required>
+
+<button type="submit">Add Student</button>
+
+</form>
+
+</div>
+
+
+<div class="chart-section">
+
+<h2>Performance Charts</h2>
+
+<canvas id="marksChart"></canvas>
+
+<br>
+
+<canvas id="performancePie"></canvas>
+
+</div>
+
+</div>
+
+
+<!-- STUDENT TABLE BELOW -->
+
+<div class="table-section">
+
+<h2>Student List</h2>
+
+<table>
+
+<tr>
+<th>Name</th>
+<th>Roll</th>
+<th>Maths</th>
+<th>Physics</th>
+<th>Chemistry</th>
+<th>Computer</th>
+<th>English</th>
+<th>Percentage</th>
+<th>Actions</th>
+</tr>
+
+{% for s in students %}
+
+<tr>
+
+<td>{{ s.name }}</td>
+<td>{{ s.roll }}</td>
+
+<td>{{ s.marks[0] }}</td>
+<td>{{ s.marks[1] }}</td>
+<td>{{ s.marks[2] }}</td>
+<td>{{ s.marks[3] }}</td>
+<td>{{ s.marks[4] }}</td>
+
+<td>{{ "%.2f"|format(s.percentage) }}</td>
+
+<td>
+
+<a class="delete-btn" href="/delete/{{ s.roll }}">Delete</a>
+
+<a class="report-btn" href="/report/{{ s.roll }}">Report</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+</div>
+<script>
+
+const students = {{ students | tojson }};
+
+// student names
+const names = students.map(s => s.name);
+
+// percentages
+const percentages = students.map(s => s.percentage);
+
+
+// BAR CHART
+
+new Chart(document.getElementById("marksChart"), {
+    type: "bar",
+    data: {
+        labels: names,
+        datasets: [{
+            label: "Student Percentage",
+            data: percentages,
+            backgroundColor: "#4e54c8"
+        }]
+    }
+});
+
+
+// PIE CHART
+
+let good = 0
+let average = 0
+let poor = 0
+
+students.forEach(s => {
+
+    if(s.percentage >= 75)
+        good++
+    else if(s.percentage >= 50)
+        average++
+    else
+        poor++
+
+})
+
+new Chart(document.getElementById("performancePie"), {
+
+    type: "pie",
+
+    data: {
+        labels: ["Good", "Average", "Poor"],
+
+        datasets: [{
+            data: [good, average, poor],
+            backgroundColor: ["#27ae60", "#f1c40f", "#e74c3c"]
+        }]
+    }
+
+})
+
+</script>
+</body>
+</html>

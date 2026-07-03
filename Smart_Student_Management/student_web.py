@@ -102,4 +102,4 @@ def generate_report(roll):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

@@ -4,7 +4,10 @@ import os
 from pymongo import MongoClient
 
 app = Flask(__name__)
-
+@app.route("/health")
+def health():
+    return "App Running"
+    
 MONGO_URI = os.environ.get("MONGO_URI")
 
 client = MongoClient(MONGO_URI)

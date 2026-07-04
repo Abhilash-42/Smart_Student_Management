@@ -1,183 +1,422 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>Student Management System</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='web.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Student Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div class="dashboard-wrapper">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        <span class="logo-text">Smart Student System</span>
+                    </div>
+                </div>
 
-<header>
-Smart Student Academic Management System
-</header>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span class="user-role-badge">{{ user_role|title }}</span>
+                        <span class="user-name">{{ username }}</span>
+                    </div>
+                    
+                    <button onclick="location.href='{{ url_for('logout') }}'" class="btn btn-logout">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
 
-<div class="container">
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-<!-- TOP SECTION -->
-<div class="top-section">
+            <!-- Statistics Cards -->
+            <section class="stats-grid">
+                <div class="stat-card glass">
+                    <div class="stat-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ total_students }}</h3>
+                        <p class="stat-label">Total Students</p>
+                    </div>
+                </div>
 
-<div class="form-section">
+                <div class="stat-card glass">
+                    <div class="stat-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
+                            <path d="M2 20h20"/>
+                            <path d="M4 4l8 8 4-4 6 6"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ class_average }}%</h3>
+                        <p class="stat-label">Class Average</p>
+                    </div>
+                </div>
 
-<h2>Add Student</h2>
+                <div class="stat-card glass">
+                    <div class="stat-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
+                            <path d="M12 2v4M12 22v-4M4 12H2M22 12h-2M19.07 4.93l-2.83 2.83M4.93 19.07l2.83-2.83M19.07 19.07l-2.83-2.83M4.93 4.93l2.83 2.83"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ top_performers }}</h3>
+                        <p class="stat-label">Top Performers (>90%)</p>
+                    </div>
+                </div>
 
-<form action="/add" method="post">
+                <div class="stat-card glass">
+                    <div class="stat-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-value">{{ weak_students }}</h3>
+                        <p class="stat-label">Weak Students (<40%)</p>
+                    </div>
+                </div>
+            </section>
 
-Name:
-<input type="text" name="name" required>
+            <!-- Add Student Form (Admin Only) -->
+            {% if user_role == 'admin' %}
+            <section class="add-student-section">
+                <div class="glass-card">
+                    <h2 class="section-title">Add New Student</h2>
+                    <form action="{{ url_for('add_student') }}" method="POST" class="add-student-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name" class="form-label">Student Name</label>
+                                <input type="text" id="name" name="name" class="form-control" placeholder="Enter student name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="roll_number" class="form-label">Roll Number</label>
+                                <input type="text" id="roll_number" name="roll_number" class="form-control" placeholder="Enter roll number" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="math" class="form-label">Mathematics</label>
+                                <input type="number" id="math" name="math" class="form-control" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="science" class="form-label">Science</label>
+                                <input type="number" id="science" name="science" class="form-control" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="english" class="form-label">English</label>
+                                <input type="number" id="english" name="english" class="form-control" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hindi" class="form-label">Hindi</label>
+                                <input type="number" id="hindi" name="hindi" class="form-control" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="social_studies" class="form-label">Social Studies</label>
+                                <input type="number" id="social_studies" name="social_studies" class="form-control" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Add Student
+                        </button>
+                    </form>
+                </div>
+            </section>
+            {% endif %}
 
-Roll:
-<input type="number" name="roll" required>
+            <!-- Search Bar -->
+            <section class="search-section">
+                <div class="glass-card">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by name or roll number..." onkeyup="searchStudents()">
+                    </div>
+                </div>
+            </section>
 
-Maths:
-<input type="number" name="m1" required>
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="charts-grid">
+                    <div class="chart-card glass">
+                        <h3 class="chart-title">Student Performance</h3>
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card glass">
+                        <h3 class="chart-title">Subject Average</h3>
+                        <div class="chart-container">
+                            <canvas id="subjectChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card glass full-width">
+                        <h3 class="chart-title">Performance Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-Physics:
-<input type="number" name="m2" required>
+            <!-- Students Table -->
+            <section class="table-section">
+                <div class="glass-card">
+                    <h2 class="section-title">Student Records</h2>
+                    <div class="table-responsive">
+                        <table class="student-table" id="studentTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Math</th>
+                                    <th>Science</th>
+                                    <th>English</th>
+                                    <th>Hindi</th>
+                                    <th>Social Studies</th>
+                                    <th>Percentage</th>
+                                    <th>Status</th>
+                                    {% if user_role == 'admin' %}
+                                    <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>
+                                        {% if student.rank == 1 %}
+                                        🥇
+                                        {% elif student.rank == 2 %}
+                                        🥈
+                                        {% elif student.rank == 3 %}
+                                        🥉
+                                        {% else %}
+                                        #{{ student.rank }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.roll_number }}</td>
+                                    <td>{{ student.math|default(0) }}</td>
+                                    <td>{{ student.science|default(0) }}</td>
+                                    <td>{{ student.english|default(0) }}</td>
+                                    <td>{{ student.hindi|default(0) }}</td>
+                                    <td>{{ student.social_studies|default(0) }}</td>
+                                    <td>{{ student.percentage|default(0) }}%</td>
+                                    <td>
+                                        <span class="status-badge status-{{ student.status|lower }}">
+                                            {{ student.status }}
+                                        </span>
+                                    </td>
+                                    {% if user_role == 'admin' %}
+                                    <td class="action-buttons">
+                                        <button onclick="location.href='{{ url_for('edit_student', student_id=student._id) }}'" class="btn-edit">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                        </button>
+                                        <button onclick="if(confirm('Are you sure?')) location.href='{{ url_for('delete_student', student_id=student._id) }}'" class="btn-delete">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                        <button onclick="location.href='{{ url_for('generate_report', student_id=student._id) }}'" class="btn-report">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                                <polyline points="10 9 9 9 8 9"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 
-Chemistry:
-<input type="number" name="m3" required>
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Performance Chart
+            const ctx1 = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: {{ student_names|safe }},
+                    datasets: [{
+                        label: 'Percentage',
+                        data: {{ student_percentages|safe }},
+                        backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                        borderColor: '#4F46E5',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
 
-Computer:
-<input type="number" name="m4" required>
+            // Subject Chart
+            const ctx2 = document.getElementById('subjectChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: {{ subject_names|safe }},
+                    datasets: [{
+                        label: 'Average Marks',
+                        data: {{ subject_averages|safe }},
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.6)',
+                            'rgba(99, 102, 241, 0.6)',
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(239, 68, 68, 0.6)',
+                            'rgba(245, 158, 11, 0.6)'
+                        ],
+                        borderColor: '#4F46E5',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
 
-English:
-<input type="number" name="m5" required>
+            // Distribution Chart
+            const ctx3 = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'pie',
+                data: {
+                    labels: ['Excellent (>=75%)', 'Average (50-75%)', 'Poor (<50%)'],
+                    datasets: [{
+                        data: {{ performance_distribution|safe }},
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.6)',
+                            'rgba(79, 70, 229, 0.6)',
+                            'rgba(239, 68, 68, 0.6)'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        });
 
-<button type="submit">Add Student</button>
+        // Search Function
+        function searchStudents() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('studentTable');
+            const rows = table.getElementsByTagName('tr');
 
-</form>
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const name = cells[1].textContent.toLowerCase();
+                    const roll = cells[2].textContent.toLowerCase();
+                    if (name.includes(filter) || roll.includes(filter)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+        }
 
-</div>
-
-
-<div class="chart-section">
-
-<h2>Performance Charts</h2>
-
-<canvas id="marksChart"></canvas>
-
-<br>
-
-<canvas id="performancePie"></canvas>
-
-</div>
-
-</div>
-
-
-<!-- STUDENT TABLE BELOW -->
-
-<div class="table-section">
-
-<h2>Student List</h2>
-
-<table>
-
-<tr>
-<th>Name</th>
-<th>Roll</th>
-<th>Maths</th>
-<th>Physics</th>
-<th>Chemistry</th>
-<th>Computer</th>
-<th>English</th>
-<th>Percentage</th>
-<th>Actions</th>
-</tr>
-
-{% for s in students %}
-
-<tr>
-
-<td>{{ s.name }}</td>
-<td>{{ s.roll }}</td>
-
-<td>{{ s.marks[0] }}</td>
-<td>{{ s.marks[1] }}</td>
-<td>{{ s.marks[2] }}</td>
-<td>{{ s.marks[3] }}</td>
-<td>{{ s.marks[4] }}</td>
-
-<td>{{ "%.2f"|format(s.percentage) }}</td>
-
-<td>
-
-<a class="delete-btn" href="/delete/{{ s.roll }}">Delete</a>
-
-<a class="report-btn" href="/report/{{ s.roll }}">Report</a>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
-
-</div>
-
-</div>
-<script>
-
-const students = {{ students | tojson }};
-
-// student names
-const names = students.map(s => s.name);
-
-// percentages
-const percentages = students.map(s => s.percentage);
-
-
-// BAR CHART
-
-new Chart(document.getElementById("marksChart"), {
-    type: "bar",
-    data: {
-        labels: names,
-        datasets: [{
-            label: "Student Percentage",
-            data: percentages,
-            backgroundColor: "#4e54c8"
-        }]
-    }
-});
-
-
-// PIE CHART
-
-let good = 0
-let average = 0
-let poor = 0
-
-students.forEach(s => {
-
-    if(s.percentage >= 75)
-        good++
-    else if(s.percentage >= 50)
-        average++
-    else
-        poor++
-
-})
-
-new Chart(document.getElementById("performancePie"), {
-
-    type: "pie",
-
-    data: {
-        labels: ["Good", "Average", "Poor"],
-
-        datasets: [{
-            data: [good, average, poor],
-            backgroundColor: ["#27ae60", "#f1c40f", "#e74c3c"]
-        }]
-    }
-
-})
-
-</script>
+        // Auto-refresh search
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(searchStudents, 300);
+        });
+    </script>
 </body>
 </html>

@@ -1,4 +1,9 @@
-
+{
+  "functions": {
+    "student_web.py": {
+      "runtime": "python3.12"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",

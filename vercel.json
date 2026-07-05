@@ -1,11 +1,9 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "student_web.py",
-      "use": "@vercel/python"
+  "functions": {
+    "student_web.py": {
+      "runtime": "python3.12"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student - Student Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        <span class="logo-text">Edit Student</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button onclick="location.href='{{ url_for('dashboard') }}'" class="btn btn-back">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"/>
+                            <polyline points="12 19 5 12 12 5"/>
+                        </svg>
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Edit Form -->
+            <section class="edit-student-section">
+                <div class="glass-card">
+                    <h2 class="section-title">Edit Student Details</h2>
+                    
+                    <form action="{{ url_for('edit_student', student_id=student._id) }}" method="POST" class="edit-student-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name" class="form-label">Student Name</label>
+                                <input type="text" id="name" name="name" class="form-control" 
+                                       value="{{ student.name }}" placeholder="Enter student name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="roll_number" class="form-label">Roll Number</label>
+                                <input type="text" id="roll_number" name="roll_number" class="form-control" 
+                                       value="{{ student.roll_number }}" placeholder="Enter roll number" required>
+                            </div>
+                        </div>
+
+                        <h3 class="section-subtitle">Subject Marks</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="math" class="form-label">Mathematics</label>
+                                <input type="number" id="math" name="math" class="form-control" 
+                                       value="{{ student.math|default(0) }}" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="science" class="form-label">Science</label>
+                                <input type="number" id="science" name="science" class="form-control" 
+                                       value="{{ student.science|default(0) }}" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="english" class="form-label">English</label>
+                                <input type="number" id="english" name="english" class="form-control" 
+                                       value="{{ student.english|default(0) }}" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hindi" class="form-label">Hindi</label>
+                                <input type="number" id="hindi" name="hindi" class="form-control" 
+                                       value="{{ student.hindi|default(0) }}" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="social_studies" class="form-label">Social Studies</label>
+                                <input type="number" id="social_studies" name="social_studies" class="form-control" 
+                                       value="{{ student.social_studies|default(0) }}" placeholder="Marks (0-100)" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="18 8 12 14 9 11"/>
+                                    <line x1="22" y1="2" x2="16" y2="8"/>
+                                </svg>
+                                Save Changes
+                            </button>
+                            <button type="button" onclick="location.href='{{ url_for('dashboard') }}'" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Form validation
+        document.querySelector('.edit-student-form').addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const roll = document.getElementById('roll_number').value.trim();
+            
+            if (!name || !roll) {
+                e.preventDefault();
+                alert('Name and Roll Number are required');
+                return;
+            }
+            
+            // Validate marks
+            const marks = ['math', 'science', 'english', 'hindi', 'social_studies'];
+            for (let id of marks) {
+                const input = document.getElementById(id);
+                const value = parseFloat(input.value);
+                if (isNaN(value) || value < 0 || value > 100) {
+                    e.preventDefault();
+                    alert('Please enter valid marks between 0 and 100');
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

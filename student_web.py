@@ -253,7 +253,7 @@ def dashboard():
                                 performance_distribution['Excellent'],
                                 performance_distribution['Average'],
                                 performance_distribution['Poor']
-                             ])
+                             ]),
                              user_role=session.get('role'),
                              username=session.get('username'))
         

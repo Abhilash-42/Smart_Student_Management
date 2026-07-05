@@ -545,10 +545,10 @@ def generate_report(student_id):
        pdf_buffer.seek(0)
 
        return send_file(
-        pdf_buffer,
-        mimetype='application/pdf',
-        as_attachment=True,
-        download_name=f'student_report_{student["roll_number"]}.pdf'
+           pdf_buffer,
+           mimetype='application/pdf',
+           as_attachment=True,
+           download_name=f'student_report_{student["roll_number"]}.pdf'
 )
         
     except Exception as e:

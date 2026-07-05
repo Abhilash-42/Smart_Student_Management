@@ -249,7 +249,11 @@ def dashboard():
                              student_percentages=json.dumps(student_percentages),
                              subject_names=json.dumps(subjects),
                              subject_averages=json.dumps(subject_averages),
-                             performance_distribution=json.dumps(performance_distribution),
+                             performance_distribution=json.dumps([
+                                performance_distribution['Excellent'],
+                                performance_distribution['Average'],
+                                performance_distribution['Poor']
+                             ])
                              user_role=session.get('role'),
                              username=session.get('username'))
         

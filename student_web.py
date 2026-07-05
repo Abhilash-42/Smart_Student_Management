@@ -20,6 +20,8 @@ import json
 from functools import wraps
 import secrets
 import hashlib
+from io import BytesIO
+from flask import send_file
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -454,11 +456,12 @@ def generate_report(student_id):
         status = get_performance_status(percentage)
         
         # Generate PDF
-        response = Response(content_type='application/pdf')
-        response.headers['Content-Disposition'] = f'inline; filename=student_report_{student["roll_number"]}.pdf'
-        
-        buffer = []
-        doc = SimpleDocTemplate(response, pagesize=letter)
+        pdf_buffer = BytesIO()
+        elements = []
+        doc = SimpleDocTemplate(
+            pdf_buffer,
+            pagesize=letter
+        )
         
         # Styles
         styles = getSampleStyleSheet()
@@ -481,8 +484,8 @@ def generate_report(student_id):
         )
         
         # Add title
-        buffer.append(Paragraph("Student Academic Report", title_style))
-        buffer.append(Spacer(1, 0.5 * inch))
+        elements.append(Paragraph("Student Academic Report", title_style))
+        elements.append(Spacer(1, 0.5 * inch))
         
         # Student Info
         info_data = [
@@ -505,8 +508,8 @@ def generate_report(student_id):
             ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
         ]))
         
-        buffer.append(info_table)
-        buffer.append(Spacer(1, 0.3 * inch))
+        elements.append(info_table)
+        elements.append(Spacer(1, 0.3 * inch))
         
         # Marks Table
         marks_data = [
@@ -531,11 +534,18 @@ def generate_report(student_id):
             ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ]))
         
-        buffer.append(marks_table)
+        elements.append(marks_table)
         
         # Build PDF
-        doc.build(buffer)
-        return response
+       doc.build(elements)
+       pdf_buffer.seek(0)
+
+       return send_file(
+        pdf_buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'student_report_{student["roll_number"]}.pdf'
+)
         
     except Exception as e:
         flash(f'Error generating report: {str(e)}', 'error')
